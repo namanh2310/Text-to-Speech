@@ -2,81 +2,45 @@ import streamlit as st
 import requests
 import re
 import json
+from PIL import Image
 
-st.title("Chuyển đaổi văn bản thành giọng nói!")
+st.title("Chuyển đổi văn bản thành giọng nói!")
 
-# with open('style.css') as f:
-#     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
+# sidebar
 with st.sidebar:
-        st.title("Customization")
-        theme_color = st.color_picker("Choose a theme color", "#ffffff")
-        font_size = st.slider("Choose font size", min_value=12, max_value=36, value=16)
-
-input_rgb = f"rgb{tuple(int(theme_color[i:i+2], 16) for i in (1, 3, 5))}"
-rgb_values = re.findall(r'\d+', input_rgb)
-
-r, g, b = map(int, rgb_values)
-print(r)
-text_color = '#000000'
-if int(r) < 150:
-    text_color = '#ffffff'
-
-opposite_r = 495 - r
-opposite_g = 497 - g
-opposite_b = 501 - b
-
-opposite_rgb = f'rgb({opposite_r}, {opposite_g}, {opposite_b})'
-
-    # Apply custom styles
+        
+        st.title("Tùy chỉnh")
+        api_token = st.sidebar.text_input("Nhập API Token (Enter 2 lần  )", placeholder="Chỉ nhập khi hết API Token")
+        text_color = st.color_picker("Chọn màu văn bản", "#000000")
+        font_size = st.slider("Chọn cỡ chữ", min_value=12, max_value=36, value=16)
+        selected_type = st.sidebar.radio("Chọn định dạng âm thanh", ["mp3", "wma", "wav", "aac", "flac"])
+        image = Image.open('Logo.png')
+        new_image = image.resize((400, 300))
+        st.image(new_image)
+# custom styles
 custom_styles = f"""
         <style>
-            .css-k1vhr4, .css-uf99v8  {{
-                background-color: {theme_color};
-            }}
-            .css-10trblm {{
-                color: {text_color}
-            }}
-            .stTextArea > .css-15tx938, 
-            .stTextInput > .css-15tx938, 
-            .stSelectbox > .css-15tx938, 
-            .stSlider > .css-15tx938,
-            .css-15uh7qh > .element-container {{
-                font-size: {font_size}px;
-                color: {text_color};
-            }}
-            .st-cu {{
-                font-size: {font_size}px;
-                background-color: {opposite_rgb};
-                color: {text_color};
-            }}
+        .css-hxt7ib {{
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }}
+        .css-15tx938, p, input, textarea {{
+            font-size: {font_size}px;
+        }} 
+
+        .css-15tx938, p, input, textarea, span {{
+            color: {text_color};
+        }} 
+        img {{
+            border: 1px solid transparent;
+            border-radius: 8px;
+            transition: all ease 0.5s;
+        }}
+        img:hover {{
+            border: 1px solid green;
+        }}
         </style>
     """
-st.markdown(custom_styles, unsafe_allow_html=True)
-
-title = st.text_input('Nhập tiêu đề đầu ra: ')
-text = st.text_area('Nhập văn bản cần chuyển đổi: ', height=150)
-
-voice_options = ["Chọn giọng nói", 
-                "Nữ miền Bắc - Quỳnh Anh", 
-                "Nữ miền Nam - Diễm My", 
-                "Nữ miền Trung - Mai Ngọc",
-                "Nữ miền Bắc - Phương Trang",
-                "Nữ miền Bắc - Thảo Chi",
-                "Nữ miền Bắc - Thanh Hà",
-                "Nữ miền Nam - Phương Ly",
-                "Nữ miền Nam - Thùy Dung",
-                "Nam miền Bắc - Thanh Tùng",
-                "Nam miền Trung - Bảo Quốc",
-                "Nam miền Nam - Minh Quân",
-                "Nữ miền Bắc - Thanh Phương",
-                "Nam miền Bắc - Nam Khánh",
-                "Nữ miền Nam - Lê Yến",
-                "Nam miền Bắc - Tiến Quân",
-                "Nữ miền Nam - Thùy Dương"]
-                
-selected_voice_raw = st.selectbox("Chọn giọng nói:", voice_options)
-
 def selected_voice(voice):
     if voice ==  "Nữ miền Bắc - Quỳnh Anh":
         return 'hn-quynhanh'
@@ -112,19 +76,50 @@ def selected_voice(voice):
         return 'hcm-thuyduyen'
     else:
         return None
-    
 
+def endecode(dict):
+    decoded_text = dict.decode('utf-8')
+    parsed_data = json.loads(decoded_text)
+    return parsed_data
 
-speed = st.slider("Chọn tốc độ đọc:", min_value=0.7, max_value=1.3, value=1.0, step=0.1)
+st.markdown(custom_styles, unsafe_allow_html=True)
+
+title = st.text_input('Nhập tiêu đề đầu ra: ') # audio file title
+text = st.text_area('Nhập văn bản cần chuyển đổi: ', height=150) # text2speech
+
+voice_options = ["- - - ", 
+                "Nữ miền Bắc - Quỳnh Anh", 
+                "Nữ miền Nam - Diễm My", 
+                "Nữ miền Trung - Mai Ngọc",
+                "Nữ miền Bắc - Phương Trang",
+                "Nữ miền Bắc - Thảo Chi",
+                "Nữ miền Bắc - Thanh Hà",
+                "Nữ miền Nam - Phương Ly",
+                "Nữ miền Nam - Thùy Dung",
+                "Nam miền Bắc - Thanh Tùng",
+                "Nam miền Trung - Bảo Quốc",
+                "Nam miền Nam - Minh Quân",
+                "Nữ miền Bắc - Thanh Phương",
+                "Nam miền Bắc - Nam Khánh",
+                "Nữ miền Nam - Lê Yến",
+                "Nam miền Bắc - Tiến Quân",
+                "Nữ miền Nam - Thùy Dương"]
+                
+selected_voice_raw = st.selectbox("Chọn giọng nói:", voice_options) # voice_options
+speed = st.slider("Chọn tốc độ đọc:", min_value=0.7, max_value=1.3, value=1.0, step=0.1) # audio speed
 
 url = "https://viettelai.vn/tts/speech_synthesis"
+
+# current api_token
+if not api_token:
+        api_token = 'eb30fe739c5795a4440ae34531ba2ac0'
 
 payload = json.dumps({
 "text": text,
 "voice": selected_voice(selected_voice_raw),
 "speed": speed,
 "tts_return_option": 3,
-"token": "eb30fe739c5795a4440ae34531ba2ac0",
+"token": api_token,
 "without_filter": False
 })
 
@@ -133,19 +128,18 @@ headers = {
 'Content-Type': 'application/json'
 }
 
-if st.button("Gửi đi"):
+if st.button("TẠO ÂM THANH"):
         if text and selected_voice:
-            response = requests.request("POST", url, headers=headers, data=payload)
+                response = requests.request("POST", url, headers=headers, data=payload)
 
-            with open(f"{title}.wav", "wb") as audio_file:
-                audio_file.write(response.content)
-            
-            st.audio(response.content, format="audio/wav")
-            st.download_button(
-            label="Download Audio",
-            data=response.content,
-            file_name=f"{title}.wav",
-            mime="audio/wav"
-        )
+                with open(f"{title}.{selected_type}", "wb") as audio_file:
+                    audio_file.write(response.content)
+                
+                st.audio(response.content, format=f"audio/{selected_type}")
+                st.download_button(
+                label="Download Audio",
+                data=response.content,
+                file_name=f"{title}.{selected_type}",
+                mime=f"audio/{selected_type}")
         else:
-            st.warning("Please enter data before submitting")
+            st.warning("Vui lòng nhập đầy đủ thông tin!")
