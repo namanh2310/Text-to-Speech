@@ -3,7 +3,7 @@ import requests
 import re
 import json
 
-st.title("Chuyển đổi văn bản thành giọng nói!")
+st.title("Chuyển đaổi văn bản thành giọng nói!")
 
 # with open('style.css') as f:
 #     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
