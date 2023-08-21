@@ -31,7 +31,7 @@ opposite_rgb = f'rgb({opposite_r}, {opposite_g}, {opposite_b})'
     # Apply custom styles
 custom_styles = f"""
         <style>
-            .css-k1vhr4, .css-vk3wp9 {{
+            .css-k1vhr4, .css-uf99v8  {{
                 background-color: {theme_color};
             }}
             .css-10trblm {{
