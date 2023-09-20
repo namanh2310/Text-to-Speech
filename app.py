@@ -112,7 +112,7 @@ url = "https://viettelai.vn/tts/speech_synthesis"
 
 # current api_token
 if not api_token:
-        api_token = 'eb30fe739c5795a4440ae34531ba2ac0'
+        api_token = '7d3d47ccc4d3c0df0780f2cbe4036689'
 
 payload = json.dumps({
 "text": text,
